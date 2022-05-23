@@ -1,5 +1,5 @@
 #include <LiquidCrystal.h>
-#include <LiquidMenu.h>
+#include "LiquidMenu.h"
 #include "Button.h"
 #include <RTClib.h>
 
@@ -16,122 +16,164 @@ Button up(5,pullup);
 Button down(6,pullup);
 Button ok(3,pullup);
 
-char string_on[] = "ON";
-char string_off[] = "OFF";
-char DATETIME [] = "12:00";
-char DATEALARM [] = "01:00";
-float suhu = 0;
-bool stateLamp = false;
+byte lockOk = 0;
+byte lockDown = 0;
+byte lockUp = 0;
+byte lockright = 0;
+byte lockLeft = 0;
 
-
-LiquidLine Time(0, 0, "Time",DATETIME);
-LiquidLine Sensor(0, 1, "SUHU:", suhu);
-LiquidLine Alarm(9, 1, "status",DATEALARM);
-LiquidScreen Output(Time, Sensor, Alarm);
-
-LiquidMenu menuOutput(lcd,Output);
-
-LiquidLine Line1(0, 0, "setMakan", DATEALARM);
-LiquidLine Line2(0, 1, "setLampu", stateLamp);
-LiquidScreen mainMenu1(Line1,Line2);
-
-LiquidLine Line3(16,1,"back");
-LiquidScreen mainMenu2(Line3);
-
-LiquidMenu menuDeff(lcd,mainMenu1,mainMenu2);
-
-LiquidLine subLine1(0, 0, "ON" ,stateLamp);
-LiquidLine subLine2(0, 1, "OFF",stateLamp);
-LiquidScreen subMenu2(subLine1,subLine2);
-
-LiquidMenu menuSub(lcd,subMenu2);
-
-LiquidSystem menuSystem(menuOutput,menuDeff,menuSub);
-
-int jam=0;
-int menit=0;
-int detik=0;
-
-bool stateLed1 = false;
-bool stateLed2 = false;
-bool stateLed3 = false;
-
-
-void go_back(){
-    menuSystem.change_menu(menuOutput);
-}
-
-void go_output(){
-   menuSystem.change_menu(menuSub);
-}
-
-void go_subMenu(){
-    menuSystem.change_menu(menuDeff);
-}
-
-void ON(){
-    digitalWrite(led,HIGH);
-}
-
-void OFF(){
-    digitalWrite(led,LOW);
-}
-
-void SUBMENU1(){
-    //menu.change_screen(3);
-}
-
-void SUBMENU2(){
-
-}
-
+byte menu = 1;
+byte counterSub1 = 1;
+byte counterPO = 1;
+byte counterSub2 = 0;
 
 void setup(){
   lcd.begin(16,2);
   rtc.begin();
-  pinMode(led,OUTPUT);
 
-  subLine1.attach_function(1,ON);
-  subLine2.attach_function(1,OFF);
-  Line1.attach_function(1,SUBMENU2);
-  Line2.attach_function(1,go_subMenu);
-
-
- // menu.update();
 }
 
 void loop(){
- // menu.update();
-  stateButton();
+
+   if(menu == 1){
+     if(ok.check() == LOW && lockOk == 0){lockOk = 1; lcd.clear();}
+     if(ok.check() != LOW && lockOk == 1){lockOk = 0; menu =2;}
+     lcd.setCursor(0,0);
+     lcd.print("testing menu");
+     lcd.setCursor(0,1);
+     lcd.print("IRFAN.A");
+   }
+
+   if(menu == 2){
+
+     if(down.check() == LOW && lockDown == 0){lockDown=1; lcd.clear();}
+     if(down.check() != LOW && lockDown == 1){lockDown=0; counterPO++;}
+
+     if(up.check() == LOW && lockUp == 0){lockUp = 1; lcd.clear();}
+     if(up.check() != LOW && lockUp == 1){lockUp = 0; counterPO--;}
+
+     if(left.check() == LOW && lockLeft == 0){lockLeft = 1; lcd.clear();}
+     if(left.check() != LOW && lockLeft == 1){lockLeft = 0; menu =1;}
+
+     
+
+     if(counterPO > 4){counterPO=0;}
+     else if(counterPO < 1){counterPO=4;}
+
+      switch(counterSub1){
+        case 1 :
+          lcd.setCursor(0,0);
+          lcd.print("set pompa");
+          lcd.setCursor(0,1);
+          lcd.print("set lampu");
+          break;
+
+        case 2:
+          lcd.setCursor(0,0);
+          lcd.print("lampu 1");
+          lcd.setCursor(0,1);
+          lcd.print("lampu 2");
+          break;
+      }
+
+      switch(counterPO){
+        case 1:
+          counterSub1=1;
+          lcd.setCursor(14,0);
+          lcd.print("<-");
+          if(ok.check() == LOW && lockOk == 0){lockOk = 1; }
+          if(ok.check() != LOW && lockOk == 1){lcd.clear(); lockOk = 0; menu=0; counterSub2 =1;}
+          break;
+
+        case 2:
+          counterSub1=1;
+          lcd.setCursor(14,1);
+          lcd.print("<-");
+          if(ok.check() == LOW && lockOk == 0){lockOk = 1; }
+          if(ok.check() != LOW && lockOk == 1){lcd.clear(); lockOk = 0; menu=0; counterSub2 =2;}
+          break;
+
+        case 3:
+          counterSub1=2;
+          lcd.setCursor(14,0);
+          lcd.print("<-");
+          if(ok.check() == LOW && lockOk == 0){lockOk = 1;}
+          if(ok.check() != LOW && lockOk == 1){ lcd.clear(); lockOk = 0; menu=0; counterSub2 =3;}
+          break;
+
+        case 4:
+          counterSub1=2;
+          lcd.setCursor(14,1);
+          lcd.print("<-");
+          if(ok.check() == LOW && lockOk == 0){lockOk = 1;}
+          if(ok.check() != LOW && lockOk == 1){ lcd.clear(); lockOk = 0; menu=0; counterSub2 =4;}
+          break;
+      }
+   }
+
+   if(counterSub2 == 1){
+      lcd.setCursor(0,0);
+          lcd.print("testing");
+          lcd.setCursor(0,1);
+          lcd.print("1");
+   }
+
+
+   if(counterSub2 == 2){
+      lcd.setCursor(0,0);
+          lcd.print("testing");
+          lcd.setCursor(0,1);
+          lcd.print("2");
+   }
+
+    if(counterSub2 == 3){
+      lcd.setCursor(0,0);
+          lcd.print("testing");
+          lcd.setCursor(0,1);
+          lcd.print("3");
+   }
+
+     if(counterSub2 == 4){
+       byte counterPOS4=1;
+
+          lcd.setCursor(0,0);
+          lcd.print("lampu:");
+          lcd.setCursor(8,0);
+          lcd.print("ON");
+          lcd.setCursor(8,0);
+          lcd.print("OFF");
+          lcd.setCursor(15,1);
+          lcd.print("<");
+
+     if(down.check() == LOW && lockDown == 0){lockDown=1; lcd.clear();}
+     if(down.check() != LOW && lockDown == 1){lockDown=0; counterPOS4++;}
+
+     if(up.check() == LOW && lockUp == 0){lockUp = 1; lcd.clear();}
+     if(up.check() != LOW && lockUp == 1){lockUp = 0; counterPOS4--;}
+
+     if(counterPOS4 > 3){counterPOS4 = 1;}
+     else if(counterPOS4 < 1){ counterPOS4 = 3;}
+
+      switch(counterPOS4){
+        case 1:
+               lcd.setCursor(11,0);
+               lcd.print("<-");
+               break;
+
+        case 2:
+               lcd.setCursor(11,0);
+               lcd.print("<-");
+               break;
+
+        case 3:
+               lcd.setCursor(13,1);
+               lcd.print("->");
+               break;
+      }
+
+   }
+
+
+
 }
 
-void updateClock(){
-  now = rtc.now();
-
-  jam = now.hour();
-  menit = now.minute();
-  detik = now.second();
-}
-
-void stateButton(){
-  if(right.check()==LOW){
-     menuSystem.switch_focus();
-  }
-
-  if(left.check()==LOW){
-    go_output();
-  }
-
-  if(up.check() == LOW){
-      
-  }
-
-  if(down.check()== LOW){
-
-  }
-
-  if(ok.check() == LOW){
-       go_subMenu();
-  }
-  //menu.update();
-}
