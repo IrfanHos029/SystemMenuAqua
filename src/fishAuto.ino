@@ -29,17 +29,24 @@ LiquidLine Sensor(0, 1, "SUHU:", suhu);
 LiquidLine Alarm(9, 1, "status",DATEALARM);
 LiquidScreen Output(Time, Sensor, Alarm);
 
+LiquidMenu menuOutput(lcd,Output);
+
 LiquidLine Line1(0, 0, "setMakan", DATEALARM);
 LiquidLine Line2(0, 1, "setLampu", stateLamp);
-LiquidScreen mainMenu(Line1,Line2);
+LiquidScreen mainMenu1(Line1,Line2);
+
+LiquidLine Line3(16,1,"back");
+LiquidScreen mainMenu2(Line3);
+
+LiquidMenu menuDeff(lcd,mainMenu1,mainMenu2);
 
 LiquidLine subLine1(0, 0, "ON" ,stateLamp);
 LiquidLine subLine2(0, 1, "OFF",stateLamp);
 LiquidScreen subMenu2(subLine1,subLine2);
 
-LiquidMenu menu(lcd);
+LiquidMenu menuSub(lcd,subMenu2);
 
-//LiquidSystem(menu);
+LiquidSystem menuSystem(menuOutput,menuDeff,menuSub);
 
 int jam=0;
 int menit=0;
@@ -50,8 +57,16 @@ bool stateLed2 = false;
 bool stateLed3 = false;
 
 
-void showMenu(){
-  menu.change_screen(2);
+void go_back(){
+    menuSystem.change_menu(menuOutput);
+}
+
+void go_output(){
+   menuSystem.change_menu(menuSub);
+}
+
+void go_subMenu(){
+    menuSystem.change_menu(menuDeff);
 }
 
 void ON(){
@@ -62,8 +77,8 @@ void OFF(){
     digitalWrite(led,LOW);
 }
 
-    void SUBMENU1(){
-    menu.change_screen(3);
+void SUBMENU1(){
+    //menu.change_screen(3);
 }
 
 void SUBMENU2(){
@@ -79,17 +94,14 @@ void setup(){
   subLine1.attach_function(1,ON);
   subLine2.attach_function(1,OFF);
   Line1.attach_function(1,SUBMENU2);
-  Line2.attach_function(1,SUBMENU1);
-  menu.add_screen(Output);
-  menu.add_screen(mainMenu);
-   menu.add_screen(subMenu2);
-  
+  Line2.attach_function(1,go_subMenu);
 
-  menu.update();
+
+ // menu.update();
 }
 
 void loop(){
-  menu.update();
+ // menu.update();
   stateButton();
 }
 
@@ -103,11 +115,11 @@ void updateClock(){
 
 void stateButton(){
   if(right.check()==LOW){
-    menu.next_screen();
+     menuSystem.switch_focus();
   }
 
   if(left.check()==LOW){
-    //menu.previous_screen();
+    go_output();
   }
 
   if(up.check() == LOW){
@@ -119,7 +131,7 @@ void stateButton(){
   }
 
   if(ok.check() == LOW){
-      menu.switch_focus();
+       go_subMenu();
   }
   //menu.update();
 }
